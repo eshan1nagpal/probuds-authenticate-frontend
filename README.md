@@ -13,7 +13,7 @@ npm start
 
 Open `http://127.0.0.1:4201`. Node 24.13.1 and npm 11.8.0 were used for verification.
 The committed lockfile pins dependencies using the reference e-compliance application's
-resolved versions. The portal includes legacy module logos and launches, plus a protected blank administrator page. Charts, PDF generators and role switching are outside this application scope.
+resolved versions. The portal includes legacy module logos and launches, plus a protected administrator workspace. Charts, PDF generators and role switching are outside this application scope.
 
 Before using real accounts, configure the development proxy in `proxy.conf.json`:
 
@@ -190,8 +190,8 @@ in the new tab. The portal bearer token never enters the navigation URL/form. Ba
 launch authorization is authoritative, independent of card visibility.
 
 An administrator sees Admin Task, which opens `/#/admin`. This route restores the
-session and checks `ROLE_ADMIN`; its main area is intentionally blank, with only the
-shared header, home link and sign-out action. No administration operations exist yet.
+session and checks `ROLE_ADMIN`; its workspace now contains User and Login History, with the existing shared navbar
+and settings actions. See the administrator section below.
 
 When deploying with a frontend CSP, allow form navigation to the configured backend
 origin for the one-use launch POST. Reverse proxies must forward `/portal/launch`
@@ -214,8 +214,7 @@ logo, spacing, underlined active tabs and right-aligned settings gear. My applic
 and the permitted Admin Task are navigation tabs; optional Change password and Logout
 are inside the account settings dropdown on desktop and mobile. Dropdown interaction
 supports outside-click dismissal and Escape with focus returned to its trigger.
-The administration main area remains intentionally blank; its navbar loads the same
-backend portal settings when entered directly.
+The administrator workspace loads the same backend portal settings when entered directly.
 
 The expiry banner appears only when the backend-provided `passwordExpiresInDays` is
 between 0 and 5 inclusive and a valid expiry timestamp exists. Missing/invalid counts
@@ -236,3 +235,59 @@ styling lives in `feature/home/account.css` rather than the global stylesheet.
 The navbar, authorization and downstream launch protocols are unchanged. Production
 build passes (410.46 kB initial); 72 existing frontend tests pass. Synthetic browser
 checks covered six/two modules, centered rows and mobile layout without overflow.
+
+
+## Administrator workspace
+
+The Admin Task tab now opens `/admin/users`. The sidebar has exactly two entries,
+**User** and **Login History**, following the reference e-compliance admin layout.
+All parent/child routes verify the administrator session; backend authorization remains
+mandatory. Filters and pagination live in URL query parameters, and returning from
+Update/Roles preserves the applied user search. Failed list requests can be retried
+without changing filters. Pages include loading, error, empty, busy and download states.
+
+- User: ID/name filters, paginated ID/Name/Email table, Update/Roles row actions,
+  a plus action for new-user creation and Download all users.
+- Add: legacy user fields, confirmation, optional current-expiry days and role checkboxes;
+  at least one role is mandatory and creation/roles are submitted together.
+- Update: immutable ID, editable profile, expiry and account flags. Password reset is
+  a separate form; profile edits do not require or submit passwords. Resetting keeps
+  unsaved profile drafts separate and updates the version used by subsequent saves.
+- Roles: selected existing assignments, database role catalogue and mandatory nonempty
+  selection. Saving invalidates the target user's sessions.
+- Login History: ID/name filters, backend pagination and descending timestamp/ID order.
+  Names reflect current profiles. Downloads use the applied filters, not unsaved text,
+  and include all matching rows across all pages.
+
+User export always downloads all users with non-secret profile, account-status, expiry, audit fields and comma-separated Roles;
+row-action buttons are not data columns. History exports contain User ID, Name and
+server-local login time. Downloads are real backend `.xlsx` workbooks. Credentials,
+hashes and tokens are never part of the table models or exports.
+
+The existing version is sent for updates/roles/resets. Conflicts remain visible and
+require an explicit reload rather than silently overwriting another change. Updating
+one's own account clears the local session and returns to login. No users are deleted,
+no roles are created, and no additional sidebar entries are present.
+
+Custom expiry days apply to the current expiry date; future password changes/reset
+use configured backend validity. Blank days on update preserve an existing date.
+The backend retains legacy password encryption and uses password history to keep
+profile changes from restarting password age, without any schema migration.
+
+Validation: **81 frontend tests** pass and production build passes (**412.50 kB initial**).
+Synthetic browser preview verified the two-entry sidebar, filters, Update/Roles/Add
+screens, history pagination and mobile layout without page overflow. No live accounts
+or configured backend database were used for browser verification.
+
+
+Admin UI follow-up: success banners dismiss after five seconds; a new success restarts
+the window even when its text is identical, and component timers are cleaned up on
+destruction. User and Login History filters use a 4/4/4 desktop row (ID, Name, Search/Clear),
+stacking on small screens. Add New User role choices use seven desktop columns and
+three/two/one columns at narrower breakpoints; the separate role-edit grid is unchanged.
+The user-download help describes the expanded non-secret field set. All 83 frontend
+tests and the production build pass.
+
+Both Add New User and Roles now share the seven-column desktop role grid, with responsive
+wrapping. Choices follow ADMIN, LCM, FCM, DMS, LEGAL, PHASE, EVENT; other catalogue
+roles remain available afterwards in ID order. Existing role IDs and assignments are unchanged.

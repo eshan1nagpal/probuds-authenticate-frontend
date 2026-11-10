@@ -10,7 +10,7 @@ export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL', {
 // Login/password errors belong to their forms; logout handles revocation errors itself.
 export const HANDLE_AUTH_ERRORS_LOCALLY = new HttpContextToken<boolean>(() => false);
 export const API_PATHS = {
-  portal: '/portal', moduleLaunch: '/portal/launch',
+  admin: '/admin', portal: '/portal', moduleLaunch: '/portal/launch',
   login: '/authenticate', session: '/session', password: '/password/change', logout: '/deout',
   resetRequest: '/password/reset/request', resetConfirm: '/password/reset/confirm',
 } as const;

@@ -1,0 +1,71 @@
+<header class="admin-header">
+  <div>
+    <h1>Users</h1>
+    <p>Manage user accounts and application access.</p>
+  </div><a routerLink="/admin/users/new" class="btn btn-primary icon-button" aria-label="Add new user"
+    title="Add new user"><i class="bi bi-plus-lg" aria-hidden="true"></i></a>
+</header>
+@if (api.feedback()) { <div class="admin-notice admin-success" role="status">{{ api.feedback() }}</div> }
+@if (error()) { <div class="admin-notice admin-error" role="alert">{{ error() }} <button type="button" class="btn btn-link" (click)="retry()" [disabled]="busy()">Try again</button></div> }
+<section class="filter-shell" aria-labelledby="filter-title">
+  <h2 class="filter-title" id="filter-title">Search filters</h2>
+  <form [formGroup]="form" (ngSubmit)="search()" class="filter-body">
+    <div class="filter-grid">
+      <div><label for="filter-id" class="field-label">User ID</label><input id="filter-id"
+          class="form-control admin-input" formControlName="username" maxlength="50" placeholder="Enter exact user ID">
+      </div>
+      <div><label for="filter-name" class="field-label">Name</label><input id="filter-name"
+          class="form-control admin-input" formControlName="name" maxlength="100"
+          placeholder="Enter all or part of a name"></div>
+    <div class="filter-actions"><button class="btn btn-primary action-button" type="submit" [disabled]="busy()"><i
+          class="bi bi-search" aria-hidden="true"></i> Search</button><button
+        class="btn btn-outline-primary action-button" type="button" (click)="clear()" [disabled]="busy()">Clear</button>
+    </div>
+    </div>
+  </form>
+</section>
+<section class="table-shell" aria-labelledby="results-title">
+  <div class="table-toolbar">
+    <div>
+      <h2 id="results-title">User list</h2><small>Download includes all account fields, audit details and comma-separated roles.</small>
+    </div><button class="btn btn-outline-primary action-button" type="button" (click)="download()"
+      [disabled]="downloading()"><i class="bi bi-download" aria-hidden="true"></i>{{ downloading() ? 'Preparing…' :
+      'Download all users' }}</button>
+  </div>
+  @if (busy()) { <div class="loading-state" role="status">Loading…</div> }
+  @else if (result()) {
+  <div class="table-scroll">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th scope="col">User ID</th>
+          <th scope="col">Name</th>
+          <th scope="col">Email</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of result()!.items; track row.username) {
+        <tr>
+          <td>{{ row.username }}</td>
+          <td>{{ row.name || '—' }}</td>
+          <td>{{ row.email }}</td>
+          <td>
+            <div class="row-actions"><a class="btn btn-outline-primary"
+                [routerLink]="['/admin/users', row.username, 'edit']"
+                [queryParams]="{username: filters().username, name: filters().name, page: page(), size: size()}">Update</a><a
+                class="btn btn-outline-primary" [routerLink]="['/admin/users', row.username, 'roles']"
+                [queryParams]="{username: filters().username, name: filters().name, page: page(), size: size()}">Roles</a>
+            </div>
+          </td>
+        </tr>
+        } @empty { <tr>
+          <td class="empty-row" colspan="4">No matching users found.</td>
+        </tr> }
+      </tbody>
+    </table>
+  </div>
+  <app-admin-pager [total]="result()!.total" [page]="page()" [size]="size()" [busy]="busy()"
+    (change)="pagination($event)" />
+  }
+</section>

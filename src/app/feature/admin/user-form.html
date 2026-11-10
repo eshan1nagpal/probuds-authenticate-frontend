@@ -1,0 +1,47 @@
+<header class="admin-header"><div><h1>{{ editing ? 'Update user' : 'Add new user' }}</h1><p>{{ editing ? 'Update account details or reset the password separately.' : 'Create an account and assign at least one application or administrator role.' }}</p></div><a class="back-link" routerLink="/admin/users" [queryParams]="returnParams"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to users</a></header>
+@if (error()) { <div class="admin-notice admin-error" role="alert">{{ error() }} <button type="button" class="btn btn-link" (click)="load()">Reload form</button></div> }
+@if (success()) { <div class="admin-notice admin-success" role="status">{{ success() }}</div> }
+@if (loading()) { <div class="loading-state" role="status">Loading user details…</div> }
+@else if ((!editing || user()) && roles().length) {
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate [attr.aria-busy]="saving()">
+  <section class="form-panel"><h2 class="panel-title">User details</h2><div class="form-body"><div class="form-grid">
+    <div><label for="user-id" class="field-label">User ID</label><input id="user-id" class="form-control admin-input" formControlName="username" maxlength="50" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="id-help"><small id="id-help" class="field-help">{{ editing ? 'User ID cannot be changed.' : 'Letters, numbers, dots, underscores, @ and hyphens; up to 50 characters.' }}</small>@if(form.controls.username.invalid && form.controls.username.touched){<div class="field-error">Enter a valid user ID.</div>}</div>
+    <div><label for="user-name" class="field-label">Name</label><input id="user-name" class="form-control admin-input" formControlName="name" maxlength="100" autocomplete="name">@if(form.controls.name.invalid && form.controls.name.touched){<div class="field-error">Enter a name of up to 100 characters.</div>}</div>
+    <div><label for="user-email" class="field-label">Email</label><input id="user-email" type="email" class="form-control admin-input" formControlName="email" maxlength="100" autocomplete="email">@if(form.controls.email.invalid && form.controls.email.touched){<div class="field-error">Enter a valid email address.</div>}</div>
+  </div>
+  @if (!editing) {
+    <div class="password-help" style="margin-top:20px">Passwords need at least eight characters, uppercase and lowercase letters, a number, and one of ! @ # $ % ^ &amp;.</div>
+    <div class="form-grid"><div><app-password-input inputId="initial-password" label="Password" [control]="form.controls.password" autocomplete="new-password" [maxLength]="1024" [invalid]="form.controls.password.invalid && form.controls.password.touched" /></div><div><app-password-input inputId="initial-confirm" label="Confirm password" [control]="form.controls.confirmPassword" autocomplete="new-password" [maxLength]="1024" /></div></div>
+    @if ((form.controls.password.invalid || form.hasError('mismatch')) && form.controls.password.touched) { <div class="field-error">Passwords must match and satisfy the password requirements.</div> }
+  }
+  </div></section>
+  <section class="form-panel"><h2 class="panel-title">Password expiry</h2><div class="form-body">
+    <label class="check-option"><input type="checkbox" formControlName="willPasswordExpire"><span>Enable explicit password expiry</span></label>
+    @if(form.controls.willPasswordExpire.value) {
+      <div style="margin-top:18px"><label for="expiry-days" class="field-label">Days until expiry{{ editing && user()?.willPasswordExpire ? ' (optional)' : '' }}</label><input id="expiry-days" type="number" min="1" max="36500" step="1" class="form-control admin-input" formControlName="expiryDays" aria-describedby="expiry-help"><small id="expiry-help" class="field-help">{{ editing && user()?.willPasswordExpire ? 'Leave blank to keep the current expiry date. ' : '' }}Entered days set the current expiry from today. Future password changes use the configured recurring validity period.</small>@if(form.hasError('expiry') && form.touched){<div class="field-error">Enter a whole number between 1 and 36500.</div>}</div>
+    }
+    @if(editing && user()?.passwordExpiryDate) { <small class="field-help">Current expiry: {{ expiryDisplay(user()!.passwordExpiryDate) }} (server time).</small> }
+  </div></section>
+  @if(editing) {
+    <section class="form-panel"><h2 class="panel-title">Account status</h2><div class="form-body"><div class="flags-grid">
+      <label class="check-option"><input type="checkbox" formControlName="enabled"><span>Account enabled</span></label>
+      <label class="check-option"><input type="checkbox" formControlName="accountNonLocked"><span>Account unlocked<small>Unlocking clears failed login attempts.</small></span></label>
+      <label class="check-option"><input type="checkbox" formControlName="accountNonExpired"><span>Account valid (not expired)</span></label>
+      <label class="check-option"><input type="checkbox" formControlName="credentialsNonExpired"><span>Credentials valid (not expired)</span></label>
+    </div><small class="field-help">Failed login attempts: {{ user()?.failedAttempts ?? 0 }}. Saved account changes end the user's existing sessions and reset links.</small></div></section>
+  } @else {
+    <section class="form-panel"><h2 class="panel-title">Roles · select at least one</h2><div class="form-body"><div class="role-options wide-role-options">@for(role of roles(); track role.id){<label class="check-option"><input type="checkbox" [checked]="selected().includes(role.id)" (change)="toggleRole(role.id, $event)"><span>{{ role.name || role.id }}<small>{{ role.id }}</small></span></label>}</div>@if(rolesTouched() && !selected().length){<div class="field-error">Select at least one role.</div>}</div></section>
+  }
+  <div class="form-actions"><button type="submit" class="btn btn-primary action-button" [disabled]="saving() || resetting()">{{ saving() ? 'Saving…' : editing ? 'Save changes' : 'Create user' }}</button><a routerLink="/admin/users" [queryParams]="returnParams" class="btn btn-outline-primary action-button">Cancel</a></div>
+</form>
+@if(editing && user()) {
+  <section class="form-panel" style="margin-top:28px"><h2 class="panel-title">Reset password</h2><div class="form-body">
+    <p class="password-help">This saves separately from profile changes. Resetting revokes existing sessions, restores credential validity and renews enabled password expiry using the configured validity period. Passwords need eight or more characters, uppercase and lowercase letters, a number, and one of ! @ # $ % ^ &amp;.</p>
+    @if(resetError()){<div class="admin-notice admin-error" role="alert">{{ resetError() }}</div>}
+    <form [formGroup]="passwordForm" (ngSubmit)="resetPassword()" novalidate><div class="form-grid"><div><app-password-input inputId="admin-new-password" label="New password" [control]="passwordForm.controls.newPassword" autocomplete="new-password" [maxLength]="1024" /></div><div><app-password-input inputId="admin-confirm-password" label="Confirm new password" [control]="passwordForm.controls.confirmPassword" autocomplete="new-password" [maxLength]="1024" /></div></div>
+    @if(passwordForm.touched && passwordForm.invalid){<div class="field-error">Passwords must match and satisfy the password requirements.</div>}
+    <div class="filter-actions"><button type="submit" class="btn btn-outline-primary action-button" [disabled]="resetting() || saving()">{{ resetting() ? 'Resetting…' : 'Reset password' }}</button></div></form>
+  </div></section>
+  <div class="audit-details"><span>Created by {{ user()!.createdBy }} · {{ expiryDisplay(user()!.createdAt) }}</span><span>Last updated by {{ user()!.updatedBy || '—' }} · {{ expiryDisplay(user()!.updatedAt) || '—' }}</span></div>
+}
+}

@@ -1,0 +1,10 @@
+<header class="admin-header"><div><h1>Assign roles</h1><p>Choose the applications and administrative access this user can use.</p></div><a class="back-link" routerLink="/admin/users" [queryParams]="returnParams"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to users</a></header>
+@if(error()){<div class="admin-notice admin-error" role="alert">{{ error() }} <button type="button" class="btn btn-link" (click)="load()">Reload</button></div>}
+@if(loading()){<div class="loading-state" role="status">Loading user roles…</div>}
+@else if(user()) {
+  <div class="user-summary"><strong>{{ user()!.username }}</strong><span>{{ user()!.name }}</span><span>{{ user()!.email }}</span></div>
+  <section class="form-panel"><h2 class="panel-title">Roles · select at least one</h2><div class="form-body"><div class="role-options wide-role-options">
+    @for(role of roles(); track role.id){<label class="check-option"><input type="checkbox" [checked]="selected().includes(role.id)" (change)="toggle(role.id, $event)" [disabled]="saving()"><span>{{ role.name || role.id }}<small>{{ role.id }}</small></span></label>}
+  </div><p class="field-help">Saving replaces the current assignments and ends this user's existing sessions. The last active administrator cannot lose administrator access.</p></div></section>
+  <div class="form-actions"><button type="button" class="btn btn-primary action-button" (click)="save()" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save roles' }}</button><a class="btn btn-outline-primary action-button" routerLink="/admin/users" [queryParams]="returnParams">Cancel</a></div>
+}
