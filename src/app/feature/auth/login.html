@@ -1,0 +1,35 @@
+<app-auth-shell title="Welcome back" description="Sign in to your e-Compliance account.">
+  <app-notice [notice]="auth.session.notice()" />
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate [attr.aria-busy]="busy()">
+    <div class="mb-4">
+      <label for="username" class="form-label">Username</label>
+      <div class="input-group" [class.field-invalid]="form.controls.username.touched && form.controls.username.invalid">
+        <span class="input-group-text"><i class="bi bi-person" aria-hidden="true"></i></span>
+        <input id="username" class="form-control" formControlName="username" type="text" autocomplete="username"
+          autocapitalize="none" spellcheck="false" placeholder="Enter your username" required
+          [attr.aria-invalid]="form.controls.username.touched && form.controls.username.invalid ? 'true' : null"
+          aria-describedby="username-error">
+      </div>
+      <div id="username-error" class="field-error">
+        @if (form.controls.username.touched && form.controls.username.invalid) { Enter a username without a colon or line break. }
+      </div>
+    </div>
+    <div class="mb-4">
+      <app-password-input inputId="password" [control]="form.controls.password"
+        [invalid]="form.controls.password.touched && form.controls.password.invalid" describedBy="password-error" />
+      <div id="password-error" class="field-error">
+        @if (form.controls.password.touched && form.controls.password.invalid) { Enter your password. }
+      </div>
+    </div>
+    <app-notice [notice]="error()" />
+    <div class="forgot-password-link"><a routerLink="/forgot-password">Forgot password?</a></div>
+    <button type="submit" class="btn btn-primary primary-action w-100" [disabled]="busy()">
+      @if (busy()) { <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Signing in… }
+      @else { Sign in <i class="bi bi-arrow-right" aria-hidden="true"></i> }
+    </button>
+    @if (auth.session.hasToken()) {
+      <button type="button" class="btn btn-link w-100 mt-2" (click)="resume()" [disabled]="busy()">Resume saved session</button>
+    }
+  </form>
+  <p class="auth-help">Having trouble signing in? Contact your administrator.</p>
+</app-auth-shell>

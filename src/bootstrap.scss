@@ -1,0 +1,26 @@
+@use 'sass:map';
+
+// Keep the reference application's Bootstrap styling, loading only the components we use.
+@import 'bootstrap/scss/functions';
+@import 'bootstrap/scss/variables';
+@import 'bootstrap/scss/variables-dark';
+@import 'bootstrap/scss/maps';
+@import 'bootstrap/scss/mixins';
+@import 'bootstrap/scss/utilities';
+
+$utilities: (
+  'width': map.get($utilities, 'width'),
+  'margin-top': map.get($utilities, 'margin-top'),
+  'margin-bottom': map.get($utilities, 'margin-bottom'),
+  'color': map.get($utilities, 'color'),
+);
+
+@import 'bootstrap/scss/root';
+@import 'bootstrap/scss/reboot';
+@import 'bootstrap/scss/type';
+@import 'bootstrap/scss/forms';
+@import 'bootstrap/scss/buttons';
+@import 'bootstrap/scss/card';
+@import 'bootstrap/scss/spinners';
+@import 'bootstrap/scss/helpers/visually-hidden';
+@import 'bootstrap/scss/utilities/api';

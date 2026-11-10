@@ -1,0 +1,70 @@
+<app-portal-shell [adminTaskEnabled]="portal()?.adminTaskEnabled ?? false"
+  [changePasswordEnabled]="portal()?.changePasswordEnabled ?? false">
+  <main class="account-page">
+    <div class="account-container">
+
+      <app-notice [notice]="auth.session.notice()" />
+      <app-notice [notice]="expiryNotice()" />
+      <app-notice [notice]="notice()" />
+      <header class="portal-heading shadow-lg">
+        <div class="account-heading">
+          <span class="eyebrow">YOUR WORKSPACE</span>
+          <h1>Welcome, {{ auth.session.user()?.name }}.</h1>
+          <p>Choose an application to continue your work.</p>
+        </div>
+        @if (portal() && !loading()) {
+        <div class="application-summary">
+          <span class="summary-icon"><i class="bi bi-grid-1x2" aria-hidden="true"></i></span>
+          <div><strong>{{ portal()!.modules.length }}</strong><span>{{ portal()!.modules.length === 1 ? 'application available' : 'applications available' }}</span></div>
+        </div>
+        }
+      </header>
+
+      @if (loading()) {
+      <div class="portal-state" role="status"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading your applications…</div>
+      } @else if (!portal()) {
+      <div class="portal-state"><button type="button" class="btn btn-primary primary-action" (click)="load()">Try
+          again</button></div>
+      } @else {
+      <section class="applications-panel" aria-labelledby="applications-title">
+        <div class="module-section-heading">
+          <div><span class="eyebrow">E-COMPLIANCE SUITE</span>
+            <h2 id="applications-title">My applications</h2>
+          </div>
+          <span class="launch-hint"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Opens in a new
+            tab</span>
+        </div>
+        @if (portal()!.modules.length) {
+        <div class="module-grid" [class.module-grid-few]="portal()!.modules.length < 4"
+          [attr.aria-busy]="opening() ? 'true' : 'false'">
+          @for (module of portal()!.modules; track module.id) {
+          <button type="button" class="module-card" (click)="launch(module)" [disabled]="opening() !== null"
+            [attr.aria-label]="'Open ' + module.name + ' in a new tab'">
+            <span class="module-card-top"><span class="module-code">{{ module.id }}</span><i
+                class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
+            <span class="module-logo"><img [src]="'assets/images/modules/' + module.logo" alt="" width="96"
+                height="112"></span>
+            <span class="module-name">{{ module.name }}</span>
+            <span class="module-open"><span>{{ opening() === module.id ? 'Opening…' : 'Open module' }}</span>
+              @if (opening() === module.id) { <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              }
+              @else { <i class="bi bi-arrow-right" aria-hidden="true"></i> }
+            </span>
+          </button>
+          }
+        </div>
+        } @else {
+        <div class="portal-state"><i class="bi bi-grid" aria-hidden="true"></i>
+          <h3>No applications available</h3>
+          <p>Contact your administrator to check your application access.</p>
+        </div>
+        }
+      </section>
+      }
+      <p class="account-support"><span class="support-icon"><i class="bi bi-headset"
+            aria-hidden="true"></i></span><span><strong>Need access to another application?</strong> Contact your
+          administrator for application or account assistance.</span></p>
+    </div>
+  </main>
+</app-portal-shell>

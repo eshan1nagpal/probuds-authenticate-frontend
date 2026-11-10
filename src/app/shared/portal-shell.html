@@ -1,0 +1,35 @@
+<nav class="app-navbar" aria-label="Main navigation">
+  <a routerLink="/account" class="navbar-brand" aria-label="e-Compliance portal home" (click)="closeMenus()">
+    <img src="assets/images/eComplianceNewLogo.png" alt="e-Compliance Suite" height="72">
+  </a>
+  <button class="navbar-toggler" type="button" aria-label="Toggle navigation" aria-controls="portal-navigation"
+    [attr.aria-expanded]="navigationOpen()" (click)="navigationOpen.set(!navigationOpen())">
+    <i class="bi bi-list" aria-hidden="true"></i>
+  </button>
+  <div id="portal-navigation" class="app-nav-links" [class.navigation-open]="navigationOpen()">
+    <a routerLink="/account" routerLinkActive="active" ariaCurrentWhenActive="page" class="nav-link" (click)="closeMenus()">My applications</a>
+    @if (adminTaskEnabled()) {
+      <a routerLink="/admin" routerLinkActive="active" ariaCurrentWhenActive="page" class="nav-link" (click)="closeMenus()">Admin Task</a>
+    }
+  </div>
+  <div class="app-nav-actions">
+    <div class="app-user-info"><div>{{ auth.session.user()?.name }}</div><small>{{ auth.session.user()?.username }}</small></div>
+    <div class="settings-control" #settingsControl>
+      <button #settingsTrigger type="button" class="settings-trigger" aria-label="Account settings"
+        aria-controls="account-settings" [attr.aria-expanded]="settingsOpen()" (click)="settingsOpen.set(!settingsOpen())">
+        <i class="bi bi-gear-fill" aria-hidden="true"></i>
+      </button>
+      @if (settingsOpen()) {
+        <ul id="account-settings" class="settings-dropdown" aria-label="Account settings">
+          @if (changePasswordEnabled()) {
+            <li><a class="dropdown-item" routerLink="/password/change" (click)="closeMenus()">Change password</a></li>
+            <li aria-hidden="true"><hr class="dropdown-divider"></li>
+          }
+          <li><button class="dropdown-item" type="button" (click)="logout()" [disabled]="busy()">{{ busy() ? 'Signing out…' : 'Logout' }}</button></li>
+        </ul>
+      }
+    </div>
+  </div>
+</nav>
+<ng-content />
+<footer class="page-footer">e-Compliance Suite <span aria-hidden="true">·</span> Application portal</footer>
